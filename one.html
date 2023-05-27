@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        background: #212121;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+      }
+
+      .slotcontainer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .slot {
+        width: 100px;
+        height: 267.5px;
+        border: 1px solid black;
+        border-radius: 7.5px;
+        display: inline-block;
+        overflow: hidden;
+        position: relative;
+        background: #fafafa;
+        box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.4) inset;
+      }
+
+      .slot .symbols {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transition: top 4s;
+      }
+
+      .slot .symbol {
+        width: 100px;
+        height: 85px;
+        font-size: 60px;
+        line-height: 100px;
+        display: block;
+        text-align: center;
+      }
+
+      button {
+        margin: 0 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+      }
+
+      .levercontainer {
+        position: relative;
+        margin-left: 20px;
+      }
+
+      .lever {
+        background: grey;
+        height: 250px;
+        width: 25px;
+        border-radius: 10px;
+        margin-top: -40px;
+        margin-left: 15px;
+        box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.4) inset;
+      }
+
+      .levertip {
+        background: red;
+        height: 55px;
+        width: 55px;
+        border-radius: 50%;
+        position: relative;
+        box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.4) inset;
+      }
+
+      .dividerhr {
+        margin: 2px 10px;
+      }
+
+      .spinAmount {
+        width: 60px;
+        border: none;
+        border-radius: 5px;
+        margin-left: 10px;
+      }
+
+      .footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        color: white;
+        padding: 10px;
+        text-align: center;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="slotcontainer">
+        <!-- 每一列 -->
+        <div class="slot">
+          <div class="symbols" id="slot1Symbols"></div>
+        </div>
+
+        <div class="slot">
+          <div class="symbols" id="slot2Symbols"></div>
+        </div>
+
+        <div class="slot">
+          <div class="symbols" id="slot3Symbols"></div>
+        </div>
+
+        <div class="slot">
+          <div class="symbols" id="slot4Symbols"></div>
+        </div>
+
+        <div class="slot">
+          <div class="symbols" id="slot5Symbols"></div>
+        </div>
+
+        <!-- 右边的哪个玩意 -->
+        <div class="levercontainer">
+          <div class="levertip"></div>
+          <div class="lever"></div>
+        </div>
+      </div>
+
+      <div style="display: flex">
+        <button onclick="spin()">Spin</button>
+        <button onclick="reset();">Reset</button>
+        <hr class="dividerhr" />
+        <input class="spinAmount" type="number" placeholder="e.g. 25" />
+        <button onclick="autoSpin();">Auto</button>
+      </div>
+    </div>
+
+    <div class="footer">
+      made with ❤️ by
+      <a style="color: white" href="https://github.com/jcjms" target="_blank"
+        >jcjms</a
+      >
+    </div>
+
+    <script>
+      // 数据
+      const slotSymbols = [
+        [
+          "😀",
+          "😁",
+          "😂",
+          "😃",
+          "😄",
+          "😅",
+          "😆",
+          "😇",
+          "😈",
+          "😉",
+          "😊",
+          "🙂",
+        ],
+        [
+          "🍎",
+          "🍏",
+          "🍐",
+          "🍊",
+          "🍋",
+          "🍌",
+          "🍉",
+          "🍇",
+          "🍓",
+          "🍈",
+          "🍒",
+          "🍑",
+        ],
+        [
+          "⭐️",
+          "🌟",
+          "✨",
+          "💫",
+          "⚡️",
+          "☄️",
+          "🌠",
+          "🌌",
+          "🌙",
+          "🌕",
+          "🌖",
+          "🌗",
+        ],
+        [
+          "🍔",
+          "🍕",
+          "🌭",
+          "🍟",
+          "🍗",
+          "🍖",
+          "🌮",
+          "🌯",
+          "🥙",
+          "🍝",
+          "🍜",
+          "🍲",
+        ],
+        [
+          "🍩",
+          "🍪",
+          "🎂",
+          "🍰",
+          "🍫",
+          "🍬",
+          "🍭",
+          "🍮",
+          "🍦",
+          "🍨",
+          "🍧",
+          "🍥",
+        ],
+      ];
+
+      // 打乱数据函数
+      function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+      }
+
+      // 将把数组里的数据中的数据对应一个元素，为每一孙子元素添加类名symbol
+      function createSymbolElement(symbol) {
+        const div = document.createElement("div");
+        div.classList.add("symbol");
+        div.textContent = symbol;
+        return div;
+      }
+
+      //第一次点spin(),不执行重置数据
+      let spun = false;
+
+      // 爷爷数组
+      const slots = document.querySelectorAll(".slot");
+
+      // transiton-delay的延迟时间
+      const transitionDelay = 300;
+
+      /*
+       *将数据打乱，然后将数组中的数组变为孙子元素，并将其类名命名为symbol
+       *并设置每一列执行滚动的时间，在函数最后一行
+       */
+      function generate() {
+        // slots是一群爷爷，数组，遍历.solt标签，对所有数据进行一个打乱
+        slots.forEach((slot, index) => {
+          for (let i = 0; i < slotSymbols.length; i++) {
+            shuffleArray(slotSymbols[i]);
+          }
+
+          // 拿到所有的爷爷元素中的子元素
+          const symbols = slot.querySelector(".symbols");
+          
+          // 拿到孙子元素的高
+          const symbolHeight = symbols.querySelector(".symbol")?.clientHeight;
+
+          // 所有的孙子元素
+          const symbolCount = symbols.childElementCount;
+
+          // 子元素先为空值
+          symbols.innerHTML = "";
+
+          // 遍历数据中数组，可以说是孙子元素
+          slotSymbols[index].forEach((symbol) => {
+            // 创建孙子元素将其添加到子元素中
+            symbols.appendChild(createSymbolElement(symbol));
+          });
+
+          // 设置子元素的延迟时间；transitionDelay=300，index:0,1,2,3,4
+          symbols.style.transitionDelay = `${transitionDelay * index}ms`;
+        });
+      }
+
+      /*
+       *点击开始
+       *第一次点击，不重置数据，往后重置数据
+       *进行移动多少px
+       *执行到最后一列，显示出页面的内容
+       *返回一个promise对象，当显示出页面所有内容之后，返回成功resolve
+       *
+       */
+      function spin() {
+        return new Promise((resolve) => {
+          // 第一次 spun=false 布尔值，不执行重置数据
+          if (spun) {
+            // 重置数据,对儿子的过渡赋空值，对定位top赋值为0
+            reset();
+          }
+
+          let completedSlots = 0;
+
+          // 遍历爷爷数组
+          slots.forEach((slot, index) => {
+            //拿到每一个子元素
+            const symbols = slot.querySelector(".symbols");
+            // 孙子元素的内容高
+            const symbolHeight = symbols.querySelector(".symbol")?.clientHeight;
+            //孙子数量
+            const symbolCount = symbols.childElementCount;
+
+            // 孙子数量乘以孙子元素内容高,可以得出子元素的总高
+            const totalDistance = symbolCount * symbolHeight;
+            // 孙子数量减以3乘以子元素内容高,注意这里是负数
+            const randomOffset = -(symbolCount - 3) * symbolHeight;
+
+            // 这里子元素会向上移动8个孙子元素的总高度
+            symbols.style.top = `${randomOffset}px`;
+
+            // 子元素添加transitionend
+            // transitionend 事件的事件处理函数，在某个 CSS transition 完成时触发
+            symbols.addEventListener(
+              "transitionend",
+              () => {
+                completedSlots++;
+                // completedSlots等不等于爷爷数组数量，遍历爷爷数组到最后一个才执行
+                if (completedSlots === slots.length) {
+                  // 这个函数的作用是显示出页面中所有的内容
+                  logDisplayedSymbols();
+                  //往后将重置数据
+                  spun = true;
+                  // 返回成功promise，这里主要是为了点击auto时，执行一遍之后，需要等待
+                  // 第一遍执行完，进行等待第二次执行的时间
+                  resolve();
+                }
+              },
+              // once一个布尔值，表示回调函数在添加之后最多只调用一次。
+              // 如果为 true，回调函数会在其被调用之后自动移除。
+              { once: true }
+            );
+          });
+        });
+      }
+
+      // 拿到输入框
+      const spinAmountInput = document.querySelector(".spinAmount");
+
+      // 点击auto执行它
+      async function autoSpin() {
+        // 拿到输入框的值
+        let spinAmount = spinAmountInput.value;
+        // 判断值是否为空，有输入值才执行
+        if (spinAmount) {
+          // 输入框的边框为黑色框
+          spinAmountInput.style.border = "none";
+          // 对输入的值进行一个循环
+          // 这里没有限制输入次数的最大值，需要进行限制
+          for (let i = 0; i < spinAmount; i++) {
+            /*
+             *点击开始
+             *第一次点击，不重置数据，往后重置数据
+             *进行移动多少px
+             *执行到最后一列，显示出页面的内容
+             *显示所有内容之后返回resolve
+             */
+            await spin();
+
+            await new Promise((resolve) =>
+              // 等待一段时间后再开始下一次旋转
+              // 全局transitionDelay，爷爷数组长度，也就是：300*5=1.5秒
+              {
+                setTimeout(resolve, transitionDelay * slots.length);
+              }
+            );
+          }
+        } else {
+          // 点击auto键且值为空才执行
+          spinAmountInput.style.border = "2px solid red";
+        }
+      }
+
+      // 重置数据,对儿子的过渡赋空值，对定位top赋值为0
+      function reset() {
+        // 拿到爷爷数组，这里为什么不使用全局爷爷数组
+        const slots = document.querySelectorAll(".slot");
+
+        slots.forEach((slot) => {
+            console.log(slot)
+          // 拿到儿子
+          const symbols = slot.querySelector(".symbols");
+          // 对儿子过渡赋空值
+          symbols.style.transition = "none";
+          // 对儿子绝对定位赋0
+          symbols.style.top = "0";
+          // 子元素的怪异盒模型的高
+          symbols.offsetHeight;
+          //对儿子过渡赋空值
+          symbols.style.transition = "";
+        });
+
+        generate();
+      }
+
+      // 遍历爷爷数组到最后一个才执行，这个函数的作用是显示出页面中所有的内容
+      function logDisplayedSymbols() {
+        // 局部爷爷数组;这里为什么不拿外面的爷爷数组，而要重新定义一个
+        const slots = document.querySelectorAll(".slot");
+
+        // 二维数组，总共三行，所以写三个数组中的数组
+        const displayedSymbols = [[], [], []];
+
+        slots.forEach((slot) => {
+          // 每一个子元素
+          const symbols = slot.querySelector(".symbols");
+
+          // symbols.textContent：孙子元素的内容是string类型;将它们变成一个数组
+          const symbolArray = Array.from(symbols.textContent);
+
+          //孙子内容数组为：第一行：因为top上升8位，所以是第9个
+          displayedSymbols[0].push(symbolArray[symbolArray.length - 3]);
+          //孙子内容数组为：第二行：第10个
+          displayedSymbols[1].push(symbolArray[symbolArray.length - 2]);
+          //孙子内容数组为：第二行：第11个，最后一个
+          displayedSymbols[2].push(symbolArray[symbolArray.length - 1]);
+        });
+
+        // 拿到页面中的结果
+        displayedSymbols.forEach((symbols, index) => {
+          console.log(`Displayed symbols(row ${index + 1}): ${symbols}`);
+        });
+      }
+
+      //右边的上面哪个红色玩意
+      document
+        .querySelector(".levertip")
+        .addEventListener("click", function () {
+          spin();
+        });
+
+      /*
+       *开始就
+       *将数据打乱，然后将数组中的数组变为孙子元素，并将其类名命名为symbol
+       *并设置每一列执行滚动的时间，在函数最后一行
+       */
+      generate();
+    </script>
+  </body>
+</html>
